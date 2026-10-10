@@ -14,8 +14,12 @@ function doPost(e) {
 }
 
 function syncData_(snapshot) {
-  const book = SpreadsheetApp.getActiveSpreadsheet();
-  if (!book) throw new Error("Vincula este script a la hoja original desde Extensiones > Apps Script.");
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(15000)) throw new Error("La hoja está ocupada por otra sincronización. Inténtalo de nuevo.");
+  try {
+  const spreadsheetId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+  if (!spreadsheetId) throw new Error("Falta la propiedad del script SPREADSHEET_ID. Usa el ID de la hoja editable original.");
+  const book = SpreadsheetApp.openById(spreadsheetId);
   const incidents = Array.isArray(snapshot.incidents) ? snapshot.incidents : [];
   const vehicles = Array.isArray(snapshot.vehicles) ? snapshot.vehicles : [];
 
@@ -55,6 +59,11 @@ function syncData_(snapshot) {
   writeTab_(book,"Incidencias webapp",incidentHeaders,incidentRows);
   writeTab_(book,"Vehículos webapp",vehicleHeaders,vehicleRows);
   return {ok:true,action:"sync",incidents:incidentRows.length,vehicles:vehicleRows.length};
+}
+
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function writeTab_(book,name,headers,rows) {
