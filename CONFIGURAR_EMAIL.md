@@ -12,8 +12,9 @@ El enlace `/pubhtml` es una vista publicada de solo lectura. Para escribir en es
 
 ## 1. Añadir Apps Script a la hoja original
 
-1. Abre la hoja original editable (no la dirección que termina en `/pubhtml`).
-2. En Google Sheets, entra en **Extensiones → Apps Script**.
+1. Abre la hoja original editable (no la dirección que termina en `/pubhtml`). Si solo tienes el enlace publicado, necesitas encontrar la hoja original o pedir acceso de edición.
+2. Copia su ID desde la URL de edición.
+3. En Google Sheets, entra en **Extensiones → Apps Script**.
 3. Pega el contenido de `apps-script/Code.gs` de este repositorio y guarda.
 4. Cuando se soliciten, acepta los permisos de Google Sheets y correo.
 
@@ -25,11 +26,11 @@ Esas pestañas se reconstruyen en cada sincronización; no las uses para escribi
 
 ## 2. Crear un token secreto
 
-En **Configuración del proyecto → Propiedades del script**, crea una propiedad:
-- Nombre: `WEBHOOK_TOKEN`
-- Valor: un token aleatorio largo (32 caracteres o más), guardado en un gestor de contraseñas.
+En **Configuración del proyecto → Propiedades del script**, crea estas dos propiedades:
+- `WEBHOOK_TOKEN`: un token aleatorio largo (32 caracteres o más), guardado en un gestor de contraseñas.
+- `SPREADSHEET_ID`: el ID de la hoja editable original. Está en la URL `https://docs.google.com/spreadsheets/d/ID_DE_LA_HOJA/edit`; copia solo el texto entre `/d/` y `/edit`. No uses el ID `2PACX...` del enlace publicado `/pubhtml`.
 
-No lo introduzcas en el HTML, en GitHub ni en este chat.
+No introduzcas el token en el HTML, en GitHub ni en este chat.
 
 ## 3. Desplegar el script como aplicación web
 
@@ -37,6 +38,7 @@ No lo introduzcas en el HTML, en GitHub ni en este chat.
 2. Ejecutar como: **Yo**.
 3. Acceso: **Cualquier persona**.
 4. Despliega, autoriza los permisos y copia la URL terminada en `/exec`.
+5. En Apps Script, si ejecutas una sincronización de prueba desde el editor, no ejecutes `doPost` directamente: la función necesita una petición web con token.
 
 La URL será pública, pero el script rechazará llamadas que no incluyan el token secreto correcto.
 
