@@ -12,14 +12,15 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+const htmlEntities: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
 const escapeHtml = (value: unknown) =>
-  String(value ?? "—").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;",
-  })[char] ?? char);
+  String(value ?? "—").replace(/[&<>"']/g, (char) => htmlEntities[char] ?? char);
 
 Deno.serve(async (request: Request) => {
   if (request.method === "OPTIONS") {
