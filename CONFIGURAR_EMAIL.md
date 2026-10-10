@@ -1,38 +1,65 @@
-# Configurar los correos de confirmación
+# Google Sheets y correos de confirmación (gratis)
 
-La aplicación está preparada para intentar enviar un correo al email de la cuenta que haya iniciado sesión **cuando se registra un parte nuevo**. Editar un parte o cambiar su estado no envía otro correo.
+La integración está preparada para que Google Apps Script haga dos tareas:
+- mantener una copia de los vehículos e incidencias en Google Sheets;
+- enviar un correo desde tu cuenta de Google cada vez que se registra un parte nuevo.
 
-## 1. Crear una clave de correo en Resend
+No necesitas Resend ni un dominio de correo propio. Las cuentas personales de Gmail tienen una cuota de Apps Script de 100 destinatarios de correo al día; las cuotas pueden cambiar: https://developers.google.com/apps-script/guides/services/quotas
 
-1. Crea una cuenta en https://resend.com/
-2. Crea una API key para enviar emails y guárdala como secreto.
-3. En Resend, verifica un dominio remitente que controles (Domains).
-4. Usa un remitente de ese dominio, por ejemplo: `Gestión de flota <incidencias@tudominio.com>`.
+## Importante sobre el enlace publicado
 
-Para pruebas, Resend puede limitar los destinatarios si el dominio no está verificado; consulta sus condiciones actuales antes de probar con otro correo.
+El enlace `/pubhtml` es una vista publicada de solo lectura. Para escribir en esa misma hoja necesitas acceso de edición a la hoja original. Si solo tienes permiso de lectura, pide acceso de edición o utiliza una hoja que controles. Los enlaces publicados no permiten editar las celdas: https://support.google.com/docs/answer/183965?hl=es
 
-## 2. Crear la Edge Function en Supabase
+## 1. Añadir Apps Script a la hoja original
 
-1. Abre el proyecto en https://supabase.com/dashboard
-2. Ve a **Edge Functions** y elige **Deploy a new function → Via Editor**.
-3. Pon exactamente el nombre `send-incident-confirmation`.
-4. Sustituye el código de ejemplo por el contenido de [supabase/functions/send-incident-confirmation/index.ts](https://github.com/enekituss/gestion-incidencias-vehiculos/blob/main/supabase/functions/send-incident-confirmation/index.ts).
-5. Despliega la función. Mantén activa la verificación de JWT/autenticación para que no sea una función pública.
+1. Abre la hoja original editable (no la dirección que termina en `/pubhtml`).
+2. En Google Sheets, entra en **Extensiones → Apps Script**.
+3. Pega el contenido de `apps-script/Code.gs` de este repositorio y guarda.
+4. Cuando se soliciten, acepta los permisos de Google Sheets y correo.
 
-## 3. Añadir los secretos de la función
+El script creará dos pestañas reservadas:
+- `Incidencias webapp`: una fila por parte, ordenada por empresa, número de vehículo, fecha e ID.
+- `Vehículos webapp`: una fila por vehículo, con el número como dato principal y los recuentos de incidencias.
 
-En la configuración de secretos de Edge Functions, configura:
+Esas pestañas se reconstruyen en cada sincronización; no las uses para escribir a mano. Las demás pestañas no se modifican.
 
-- `RESEND_API_KEY`: la clave secreta de API de Resend.
-- `EMAIL_FROM`: un remitente permitido y verificado, por ejemplo `Gestión de flota <incidencias@tudominio.com>`.
+## 2. Crear un token secreto
 
-**No introduzcas estas claves en `index.html`, en GitHub ni en el chat.** Supabase proporciona `SUPABASE_URL` y `SUPABASE_ANON_KEY` a las funciones. La función obtiene el destinatario de la sesión autenticada, no de un campo manipulable del navegador.
+En **Configuración del proyecto → Propiedades del script**, crea una propiedad:
+- Nombre: `WEBHOOK_TOKEN`
+- Valor: un token aleatorio largo (32 caracteres o más), guardado en un gestor de contraseñas.
 
-## 4. Probarlo
+No lo introduzcas en el HTML, en GitHub ni en este chat.
 
-1. Abre https://enekituss.github.io/gestion-incidencias-vehiculos/
-2. Inicia sesión con una cuenta cuyo email puedas consultar.
-3. Registra un parte nuevo.
-4. Comprueba la bandeja de entrada y la carpeta de spam.
+## 3. Desplegar el script como aplicación web
 
-La aplicación guarda el parte en Supabase antes de solicitar el email. Si el correo falla, el parte permanece registrado: no lo vuelvas a crear, revisa el error y la configuración de Resend.
+1. En Apps Script, pulsa **Implementar → Nueva implementación → Aplicación web**.
+2. Ejecutar como: **Yo**.
+3. Acceso: **Cualquier persona**.
+4. Despliega, autoriza los permisos y copia la URL terminada en `/exec`.
+
+La URL será pública, pero el script rechazará llamadas que no incluyan el token secreto correcto.
+
+## 4. Configurar Supabase
+
+1. Abre Supabase → **Edge Functions**.
+2. Crea o actualiza la función `send-incident-confirmation` con el archivo `supabase/functions/send-incident-confirmation/index.ts` del repositorio. Mantén la verificación de JWT/autenticación.
+3. En los secretos de la función, añade:
+   - `GOOGLE_APPS_SCRIPT_URL`: la URL desplegada que termina en `/exec`.
+   - `GOOGLE_APPS_SCRIPT_TOKEN`: el mismo valor que guardaste como `WEBHOOK_TOKEN`.
+4. Despliega la función.
+
+La función valida el usuario en Supabase. Para el correo, obtiene el destinatario de la cuenta autenticada, no de un campo enviado por el navegador.
+
+## 5. Publicar las pestañas
+
+En la hoja original, ve a **Archivo → Compartir → Publicar en la web** y comprueba que se publica el documento completo, no solo una pestaña. Puede tardar unos minutos en actualizarse la vista pública.
+
+## 6. Probarlo
+
+1. Abre https://enekituss.github.io/gestion-incidencias-vehiculos/ y entra con tu cuenta.
+2. Registra un parte nuevo.
+3. Comprueba las pestañas `Incidencias webapp` y `Vehículos webapp`.
+4. Revisa el email de confirmación de la cuenta con la que has iniciado sesión, también en spam.
+
+El parte se guarda primero en Supabase. Si Google Sheets o el correo fallan, el registro no se borra. Consulta **Edge Functions → Logs** y **Apps Script → Executions** para encontrar errores.
