@@ -17,50 +17,48 @@ function syncData_(snapshot) {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(15000)) throw new Error("La hoja está ocupada por otra sincronización. Inténtalo de nuevo.");
   try {
-  const spreadsheetId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
-  if (!spreadsheetId) throw new Error("Falta la propiedad del script SPREADSHEET_ID. Usa el ID de la hoja editable original.");
-  const book = SpreadsheetApp.openById(spreadsheetId);
-  const incidents = Array.isArray(snapshot.incidents) ? snapshot.incidents : [];
-  const vehicles = Array.isArray(snapshot.vehicles) ? snapshot.vehicles : [];
+    const spreadsheetId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+    if (!spreadsheetId) throw new Error("Falta la propiedad del script SPREADSHEET_ID. Usa el ID de la hoja editable original.");
+    const book = SpreadsheetApp.openById(spreadsheetId);
+    const incidents = Array.isArray(snapshot.incidents) ? snapshot.incidents : [];
+    const vehicles = Array.isArray(snapshot.vehicles) ? snapshot.vehicles : [];
 
-  const incidentHeaders = ["ID de parte","Empresa","Nº de vehículo","Fecha detección","Fecha registro","Estado","Prioridad","Categoría","Subcategoría","Componente","Síntoma","Ubicación","Ruta","Base","Matrícula","Tipo","Modelo","Kilometraje","Informante","Descripción","Acción realizada","Taller","Fecha prevista","Historial"];
-  const incidentRows = incidents.map(i => [
-    val_(i.id), val_(i.company), val_(i.vehicleId), date_(i.detectedAt), date_(i.createdAt),
-    val_(i.status || "Abierta"), val_(i.priority), val_(i.category), val_(i.subcategory),
-    val_(i.component), val_(i.symptom), val_(i.location), val_(i.route), val_(i.depot),
-    val_(i.registration), val_(i.vehicleType), val_(i.vehicleModel), val_(i.km), val_(i.reporter),
-    val_(i.description), val_(i.actionTaken), val_(i.workshop), val_(i.dueDate),
-    (Array.isArray(i.events) ? i.events : []).map(x => [fmt_(x.at), val_(x.text)].filter(Boolean).join(" · ")).join("\n")
-  ]);
-  incidentRows.sort((a,b) =>
-    String(a[1]).localeCompare(String(b[1]),"es",{sensitivity:"base"}) ||
-    String(a[2]).localeCompare(String(b[2]),"es",{numeric:true,sensitivity:"base"}) ||
-    dateMs_(a[4])-dateMs_(b[4]) ||
-    String(a[0]).localeCompare(String(b[0]),"es",{numeric:true})
-  );
+    const incidentHeaders = ["ID de parte","Empresa","Nº de vehículo","Fecha detección","Fecha registro","Estado","Prioridad","Categoría","Subcategoría","Componente","Síntoma","Ubicación","Ruta","Base","Matrícula","Tipo","Modelo","Kilometraje","Informante","Descripción","Acción realizada","Taller","Fecha prevista","Historial"];
+    const incidentRows = incidents.map(i => [
+      val_(i.id), val_(i.company), val_(i.vehicleId), date_(i.detectedAt), date_(i.createdAt),
+      val_(i.status || "Abierta"), val_(i.priority), val_(i.category), val_(i.subcategory),
+      val_(i.component), val_(i.symptom), val_(i.location), val_(i.route), val_(i.depot),
+      val_(i.registration), val_(i.vehicleType), val_(i.vehicleModel), val_(i.km), val_(i.reporter),
+      val_(i.description), val_(i.actionTaken), val_(i.workshop), val_(i.dueDate),
+      (Array.isArray(i.events) ? i.events : []).map(x => [fmt_(x.at), val_(x.text)].filter(Boolean).join(" · ")).join("\n")
+    ]);
+    incidentRows.sort((a,b) =>
+      String(a[1]).localeCompare(String(b[1]),"es",{sensitivity:"base"}) ||
+      String(a[2]).localeCompare(String(b[2]),"es",{numeric:true,sensitivity:"base"}) ||
+      dateMs_(a[4])-dateMs_(b[4]) ||
+      String(a[0]).localeCompare(String(b[0]),"es",{numeric:true})
+    );
 
-  const counts = {};
-  incidents.forEach(i => {
-    const key = vehicleKey_(i.company,i.vehicleId);
-    if (!counts[key]) counts[key] = {active:0,total:0};
-    counts[key].total++;
-    if (String(i.status || "Abierta").toLowerCase() !== "resuelta") counts[key].active++;
-  });
-  const vehicleHeaders = ["Empresa","Nº de vehículo","Matrícula","Tipo","Modelo","Base","Ruta","Kilometraje","Incidencias activas","Total de incidencias"];
-  const vehicleRows = vehicles.map(v => {
-    const n = counts[vehicleKey_(v.company,v.id)] || {active:0,total:0};
-    return [val_(v.company),val_(v.id),val_(v.registration),val_(v.type),val_(v.model),val_(v.depot),val_(v.route),val_(v.km),n.active,n.total];
-  });
-  vehicleRows.sort((a,b) =>
-    String(a[0]).localeCompare(String(b[0]),"es",{sensitivity:"base"}) ||
-    String(a[1]).localeCompare(String(b[1]),"es",{numeric:true,sensitivity:"base"})
-  );
+    const counts = {};
+    incidents.forEach(i => {
+      const key = vehicleKey_(i.company,i.vehicleId);
+      if (!counts[key]) counts[key] = {active:0,total:0};
+      counts[key].total++;
+      if (String(i.status || "Abierta").toLowerCase() !== "resuelta") counts[key].active++;
+    });
+    const vehicleHeaders = ["Empresa","Nº de vehículo","Matrícula","Tipo","Modelo","Base","Ruta","Kilometraje","Incidencias activas","Total de incidencias"];
+    const vehicleRows = vehicles.map(v => {
+      const n = counts[vehicleKey_(v.company,v.id)] || {active:0,total:0};
+      return [val_(v.company),val_(v.id),val_(v.registration),val_(v.type),val_(v.model),val_(v.depot),val_(v.route),val_(v.km),n.active,n.total];
+    });
+    vehicleRows.sort((a,b) =>
+      String(a[0]).localeCompare(String(b[0]),"es",{sensitivity:"base"}) ||
+      String(a[1]).localeCompare(String(b[1]),"es",{numeric:true,sensitivity:"base"})
+    );
 
-  writeTab_(book,"Incidencias webapp",incidentHeaders,incidentRows);
-  writeTab_(book,"Vehículos webapp",vehicleHeaders,vehicleRows);
-  return {ok:true,action:"sync",incidents:incidentRows.length,vehicles:vehicleRows.length};
-}
-
+    writeTab_(book,"Incidencias webapp",incidentHeaders,incidentRows);
+    writeTab_(book,"Vehículos webapp",vehicleHeaders,vehicleRows);
+    return {ok:true,action:"sync",incidents:incidentRows.length,vehicles:vehicleRows.length};
   } finally {
     lock.releaseLock();
   }
