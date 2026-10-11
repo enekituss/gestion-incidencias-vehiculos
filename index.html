@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#17364f" />
 <link rel="manifest" href="./manifest.webmanifest" />
-<link rel="icon" type="image/png" sizes="192x192" href="./icons/app-192.png" />
-<link rel="apple-touch-icon" sizes="192x192" href="./icons/app-192.png" />
+<link rel="icon" type="image/svg+xml" href="./icons/app-512.svg" />
+<link rel="apple-touch-icon" href="./icons/app-192.svg" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -135,7 +135,7 @@ body.auth-required .app{display:none!important}
 <body>
 <div id="authGate" class="auth-gate hidden" role="dialog" aria-modal="true" aria-labelledby="authTitle">
   <section class="auth-card">
-    <div class="auth-mark"><img class="app-logo-image" src="./icons/app-512.png" alt="Logo de Gestión de flota"></div>
+    <div class="auth-mark"><img class="app-logo-image" src="./icons/app-512.svg" alt="Logo de Gestión de flota"></div>
     <div class="eyebrow">Acceso al registro compartido</div>
     <h1 id="authTitle">Gestión de incidencias</h1>
     <p class="auth-intro" id="authIntro">Inicia sesión para consultar los vehículos y partes sincronizados.</p>
@@ -150,7 +150,7 @@ body.auth-required .app{display:none!important}
 </div>
 <div class="app">
   <aside class="sidebar" id="sidebar">
-    <div class="brand"><div class="brandmark"><img class="app-logo-image" src="./icons/app-512.png" alt="Logo de Gestión de flota"></div><div><h1>Gestión de flota</h1><small>Incidencias de vehículos</small></div></div>
+    <div class="brand"><div class="brandmark"><img class="app-logo-image" src="./icons/app-512.svg" alt="Logo de Gestión de flota"></div><div><h1>Gestión de flota</h1><small>Incidencias de vehículos</small></div></div>
     <div><p class="nav-label">Operaciones</p><nav class="nav" aria-label="Menú principal">
       <button class="active" data-page="dashboard"><span class="ico">▦</span>Resumen</button>
       <button data-page="new"><span class="ico">＋</span>Nueva incidencia</button>
@@ -164,7 +164,7 @@ body.auth-required .app{display:none!important}
       <button data-action="import"><span class="ico">⇧</span>Importar copia</button>
       <button id="installAppBtn" type="button"><span class="ico">⬇</span>Instalar aplicación</button>
     </nav></div>
-    <div class="sidebar-bottom"><div class="profile"><div class="avatar"><img class="app-logo-image" src="./icons/app-512.png" alt="Logo de Gestión de flota"></div><div><strong>Gestión de flota</strong><small>Registro de incidencias</small></div></div></div>
+    <div class="sidebar-bottom"><div class="profile"><div class="avatar"><img class="app-logo-image" src="./icons/app-512.svg" alt="Logo de Gestión de flota"></div><div><strong>Gestión de flota</strong><small>Registro de incidencias</small></div></div></div>
   </aside>
   <main class="main">
     <header class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="mobile-menu" id="mobileMenu" aria-label="Abrir menú">☰</button><div class="breadcrumbs">Flota <span style="color:#b4c0cb;margin:0 7px">/</span> <strong id="crumb">Resumen</strong></div></div><div class="top-actions"><span class="local-label" id="cloudStatus"><span class="live-dot"></span>Modo local · solo este dispositivo</span><button class="btn hidden" id="logoutBtn" type="button">Cerrar sesión</button><button class="btn btn-primary" data-go="new">＋ Registrar parte</button></div></header>
