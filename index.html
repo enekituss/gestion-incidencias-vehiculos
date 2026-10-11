@@ -4,6 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#17364f" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="icon" type="image/svg+xml" href="./icons/app-512.svg" />
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/80/80758.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Gestión flota" />
 <title>Gestión de incidencias de vehículos</title>
 <style>
 :root{--navy:#17364f;--blue:#176fae;--cyan:#dff3ff;--ink:#13243a;--muted:#6f8196;--line:#e3eaf1;--bg:#f4f7fb;--white:#fff;--green:#15845b;--greenbg:#e5f7ee;--amber:#ad6a00;--amberbg:#fff3d9;--red:#bf3c45;--redbg:#fff0f0;--purple:#7353b6;--purplebg:#f0eaff;--shadow:0 12px 32px rgba(13,49,83,.08)}
@@ -16,7 +23,7 @@
 .panel,.stat-card{box-shadow:none;border-radius:10px}
 .btn{border-radius:7px;transition:background-color .15s,border-color .15s}
 .btn:hover{transform:none;box-shadow:none}
-.brandmark{border-radius:9px}
+.brandmark{border-radius:9px}.app-logo-image{display:block;width:100%;height:100%;object-fit:contain;padding:3px;border-radius:inherit}.brandmark,.avatar{overflow:hidden;background:#fff}.auth-mark{overflow:hidden;background:#fff;padding:0}.profile .avatar{padding:2px}
 .vehicle-id-field input{min-height:52px;font-size:20px;font-weight:750;letter-spacing:.2px;border-color:#b9cbd9;background:#fbfdff}.company-field input{min-height:46px;font-weight:650}.vehicle-company{font-size:11px;font-weight:750;color:#176fae;margin:0 0 6px;overflow-wrap:anywhere}
 .vehicle-id-field input:focus{background:#fff}
 .vehicle-number{font-size:24px;line-height:1.2;letter-spacing:.1px;overflow-wrap:anywhere}.vehicle-cell-number{font-size:14px;font-weight:850;letter-spacing:.1px}
@@ -128,7 +135,7 @@ body.auth-required .app{display:none!important}
 <body>
 <div id="authGate" class="auth-gate hidden" role="dialog" aria-modal="true" aria-labelledby="authTitle">
   <section class="auth-card">
-    <div class="auth-mark">GF</div>
+    <div class="auth-mark"><img class="app-logo-image" src="https://cdn-icons-png.flaticon.com/512/80/80758.png" alt="Logo de Gestión de flota"></div>
     <div class="eyebrow">Acceso al registro compartido</div>
     <h1 id="authTitle">Gestión de incidencias</h1>
     <p class="auth-intro" id="authIntro">Inicia sesión para consultar los vehículos y partes sincronizados.</p>
@@ -143,7 +150,7 @@ body.auth-required .app{display:none!important}
 </div>
 <div class="app">
   <aside class="sidebar" id="sidebar">
-    <div class="brand"><div class="brandmark">GF</div><div><h1>Gestión de flota</h1><small>Incidencias de vehículos</small></div></div>
+    <div class="brand"><div class="brandmark"><img class="app-logo-image" src="https://cdn-icons-png.flaticon.com/512/80/80758.png" alt="Logo de Gestión de flota"></div><div><h1>Gestión de flota</h1><small>Incidencias de vehículos</small></div></div>
     <div><p class="nav-label">Operaciones</p><nav class="nav" aria-label="Menú principal">
       <button class="active" data-page="dashboard"><span class="ico">▦</span>Resumen</button>
       <button data-page="new"><span class="ico">＋</span>Nueva incidencia</button>
@@ -155,8 +162,9 @@ body.auth-required .app{display:none!important}
       <button data-action="export"><span class="ico">⇩</span>Exportar CSV</button><button data-action="pdf"><span class="ico">▧</span>Informe PDF</button>
       <button data-action="backup"><span class="ico">◈</span>Copia de seguridad</button>
       <button data-action="import"><span class="ico">⇧</span>Importar copia</button>
+      <button id="installAppBtn" type="button"><span class="ico">⬇</span>Instalar aplicación</button>
     </nav></div>
-    <div class="sidebar-bottom"><div class="profile"><div class="avatar">GF</div><div><strong>Gestión de flota</strong><small>Registro de incidencias</small></div></div></div>
+    <div class="sidebar-bottom"><div class="profile"><div class="avatar"><img class="app-logo-image" src="https://cdn-icons-png.flaticon.com/512/80/80758.png" alt="Logo de Gestión de flota"></div><div><strong>Gestión de flota</strong><small>Registro de incidencias</small></div></div></div>
   </aside>
   <main class="main">
     <header class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="mobile-menu" id="mobileMenu" aria-label="Abrir menú">☰</button><div class="breadcrumbs">Flota <span style="color:#b4c0cb;margin:0 7px">/</span> <strong id="crumb">Resumen</strong></div></div><div class="top-actions"><span class="local-label" id="cloudStatus"><span class="live-dot"></span>Modo local · solo este dispositivo</span><button class="btn hidden" id="logoutBtn" type="button">Cerrar sesión</button><button class="btn btn-primary" data-go="new">＋ Registrar parte</button></div></header>
@@ -252,6 +260,7 @@ const INCIDENT_STATUSES=['Abierta','Asignada','En reparación','Pendiente de pie
 const SUPABASE_URL='https://nmttxjpdmlbsohgtsahm.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_QdaCPAQ3VmVTY9XR57GUZw_RnZ1TUWp';
 let supabaseClient=null, cloudReady=false, cloudSession=null, cloudChannel=null, cloudPollTimer=null;
+let currentPage='dashboard', navHistoryReady=false, deferredInstallPrompt=null;
 let cloudSaveTimer=null, cloudWriteChain=Promise.resolve(), cloudWriteBusy=false, cloudSaveVersion=0;
 let lastCloudUpdatedAt='', lastCloudPayload='', authObserver=null;
 const isSupabaseConfigured=()=>SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.includes('PEGA_AQUI')&&!!SUPABASE_PUBLISHABLE_KEY&&!SUPABASE_PUBLISHABLE_KEY.includes('PEGA_AQUI');
@@ -283,6 +292,12 @@ function cacheLocalState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(s
 function save(){cacheLocalState();if(cloudReady&&cloudSession){$('#lastSaved').textContent='Sincronizando con la nube…';setCloudStatus('Sincronizando…');if(cloudSaveTimer)clearTimeout(cloudSaveTimer);const version=++cloudSaveVersion;cloudSaveTimer=setTimeout(()=>{cloudSaveTimer=null;const snapshot=normalizeState(state);cloudWriteChain=cloudWriteChain.catch(()=>{}).then(()=>writeCloudSnapshot(snapshot,version));},350);}else{$('#lastSaved').textContent='Guardado local · '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});}}
 function stableStringify(value){if(Array.isArray(value))return '['+value.map(stableStringify).join(',')+']';if(value&&typeof value==='object')return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stableStringify(value[k])).join(',')+'}';return JSON.stringify(value);}
 function hasRecords(x){return !!(x&&(x.vehicles?.length||x.incidents?.length||x.activity?.length));}
+
+function appIsInstalled(){return window.matchMedia?.('(display-mode: standalone)').matches||window.navigator.standalone===true;}
+async function installApplication(){if(appIsInstalled()){toast('La aplicación ya está instalada.');return;}if(deferredInstallPrompt){deferredInstallPrompt.prompt();const choice=await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;if(choice?.outcome==='accepted')toast('Instalación iniciada.');return;}const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);const content=ios?'<p>Para instalar esta web en tu iPhone o iPad:</p><ol><li>Abre esta página en Safari.</li><li>Pulsa el botón <strong>Compartir</strong>.</li><li>Selecciona <strong>Añadir a pantalla de inicio</strong> y confirma.</li></ol>':'<p>Para instalar esta aplicación desde el navegador:</p><ol><li>Abre el menú del navegador (⋮ o ⋯).</li><li>Elige <strong>Instalar aplicación</strong> o <strong>Añadir a pantalla de inicio</strong>.</li><li>Confirma la instalación.</li></ol><p class="hint">Si no aparece la opción, recarga la web una vez y vuelve a abrir el menú.</p>';modalOpen('Instalar Gestión de flota','Accede desde un icono como si fuera una aplicación',content,'<button class="btn btn-primary" data-modal-close>Entendido</button>');}
+window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;const b=$('#installAppBtn');if(b)b.innerHTML='<span class="ico">⬇</span>Instalar aplicación';});
+window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;toast('Gestión de flota se ha instalado correctamente.');});
+
 function setCloudStatus(text,mode=''){const el=$('#cloudStatus');if(!el)return;el.innerHTML='<span class="live-dot"></span>'+esc(text);el.style.color=mode==='error'?'#bf3c45':mode==='ok'?'#166b4c':'';}
 function authMessage(text,type=''){const el=$('#authMessage');if(el){el.textContent=text;el.className='auth-message'+(type?' '+type:'');}}
 function showAuthGate(message='',type=''){document.body.classList.add('auth-required');$('#authGate').classList.remove('hidden');$('#logoutBtn').classList.add('hidden');authMessage(message,type);}
@@ -304,7 +319,9 @@ function activeIncidents(){return state.incidents.filter(i=>i.status!=='Resuelta
 function statusBadge(status){const cls=status==='Resuelta'?'badge-resolved':status==='Abierta'?'badge-open':status==='Asignada'?'badge-assigned':status==='En reparación'?'badge-repair':status==='Pendiente de piezas'?'badge-parts':'badge-progress';return '<span class="badge '+cls+'">'+esc(status||'Sin estado')+'</span>';}
 function priorityBadge(priority){return `<span class="badge ${priority==='Alta'?'badge-high':priority==='Media'?'badge-medium':'badge-low'}">${esc(priority||'Sin prioridad')}</span>`}
 function iconFor(category){return({'Mecánica':'⚙','Eléctrica':'ϟ','Neumáticos':'◉','Carrocería':'▱','Frenos':'⛭','Accesibilidad':'♿','Seguridad':'⚠','Climatización':'❄','Equipamiento':'▣','Limpieza':'✦','Documentación':'▤','Otros':'＋'})[category]||'⚠'}
-function nav(page){if(!$('#page-'+page))page='dashboard';$$('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));$$('.nav button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));const titles={dashboard:'Resumen',new:'Nueva incidencia',active:'Incidencias activas',history:'Historial',analytics:'Estadísticas',fleet:'Vehículos registrados'};$('#crumb').textContent=titles[page]||'Resumen';$('#sidebar').classList.remove('open');window.scrollTo({top:0,behavior:'smooth'});renderAll();}
+function nav(page,fromHistory=false){if(!$('#page-'+page))page='dashboard';if(!fromHistory&&navHistoryReady&&window.history?.pushState)history.pushState({fleetIncidentsApp:true,page,kind:'page'},'',location.href);currentPage=page;$('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));$('.nav button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));const titles={dashboard:'Resumen',new:'Nueva incidencia',active:'Incidencias activas',history:'Historial',analytics:'Estadísticas',fleet:'Vehículos registrados'};$('#crumb').textContent=titles[page]||'Resumen';$('#sidebar').classList.remove('open');window.scrollTo({top:0,behavior:'smooth'});renderAll();}
+function setupNavigationHistory(){if(!window.history?.pushState)return;navHistoryReady=true;history.replaceState({fleetIncidentsApp:true,page:'dashboard',kind:'base'},'',location.href);history.pushState({fleetIncidentsApp:true,page:'dashboard',kind:'guard'},'',location.href);window.addEventListener('popstate',event=>{if($('#modalBackdrop')?.classList.contains('show')){modalClose();history.pushState({fleetIncidentsApp:true,page:currentPage,kind:'page'},'',location.href);return;}if(event.state?.fleetIncidentsApp){nav(event.state.page||'dashboard',true);if(event.state.kind==='base')history.pushState({fleetIncidentsApp:true,page:currentPage,kind:'guard'},'',location.href);}else{nav('dashboard',true);history.pushState({fleetIncidentsApp:true,page:currentPage,kind:'guard'},'',location.href);}});document.addEventListener('keydown',event=>{const target=event.target,editing=!!(target&&(target.isContentEditable||['INPUT','TEXTAREA','SELECT'].includes(target.tagName)));const back=(event.altKey&&event.key==='ArrowLeft')||(event.metaKey&&event.key==='[')||(event.key==='Backspace'&&!editing);if(back){event.preventDefault();history.back();}});}
+
 function toast(message){const t=document.createElement('div');t.className='toast';t.innerHTML='<span>✓</span><div>'+esc(message)+'</div>';$('#toastArea').append(t);setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(8px)';setTimeout(()=>t.remove(),240)},3300)}
 function render(){const a=activeIncidents();$('#statOpen').textContent=state.incidents.filter(i=>i.status==='Abierta').length;$('#statHigh').textContent=a.filter(i=>i.priority==='Alta').length;$('#statProgress').textContent=a.filter(i=>i.status!=='Abierta').length;$('#statResolved').textContent=state.incidents.filter(i=>i.status==='Resuelta').length;$('#navActiveCount').textContent=a.length;renderRecent();renderActivity();renderActive();renderHistory();renderFleet();renderAnalytics();updateVehicleOptions();populateCategoryFilters();}
 function renderRecent(){const list=[...state.incidents].sort((a,b)=>new Date(b.updatedAt||b.createdAt)-new Date(a.updatedAt||a.createdAt)).slice(0,5);const el=$('#recentList');if(!list.length){el.innerHTML=emptyMarkup('No hay partes registrados','Registra una incidencia para ver los movimientos aquí.');return;}el.innerHTML=list.map(i=>`<div class="incident-row"><div class="incident-glyph ${i.priority==='Alta'?'red':i.category==='Eléctrica'?'blue':i.category==='Seguridad'?'red':'purple'}">${iconFor(i.category)}</div><div><div class="row-title">${esc(i.vehicleId)} · ${esc(i.category)} — ${esc(i.subcategory)}</div><div class="row-meta">${esc(i.company||'Empresa sin indicar')} · ${esc(i.id)} · ${esc(i.vehicleModel||i.vehicleType||'Vehículo')} · ${fmtDate(i.createdAt)}</div></div><div>${statusBadge(i.status)}</div></div>`).join('');}
@@ -364,6 +381,7 @@ function resetLocal(){if(!confirm('¿Borrar todos los registros guardados en est
 $('#authForm').addEventListener('submit',async e=>{e.preventDefault();if(!supabaseClient){authMessage('Configura la URL del proyecto y la clave pública de Supabase en el código.','error');return;}const btn=$('#authSubmit');btn.disabled=true;authMessage('Verificando acceso…');try{const existing=await supabaseClient.auth.getSession();let session=existing.data?.session;if(!session){const {data,error}=await supabaseClient.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error)throw error;session=data.session;}await activateCloudSession(session);}catch(e){authMessage('No se ha podido iniciar sesión o cargar los datos. '+(e?.message||'Comprueba el correo, contraseña y configuración de Supabase.'),'error');}finally{btn.disabled=false;}});
 $('#logoutBtn').addEventListener('click',async()=>{if(!supabaseClient)return;$('#logoutBtn').disabled=true;try{await supabaseClient.auth.signOut();}catch(e){toast('No se pudo cerrar la sesión.');}finally{stopCloudSync();showAuthGate('Sesión cerrada.');setCloudStatus('Sesión cerrada');$('#logoutBtn').disabled=false;}});
 // Navigation and controls
+$('#installAppBtn').addEventListener('click',installApplication);
 $$('[data-page]').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.page)));
 $$('[data-go]').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.go)));
 $$('[data-action="export"]').forEach(b=>b.addEventListener('click',exportCSV));
@@ -378,6 +396,8 @@ $('#incidentForm').addEventListener('submit',submitIncident);$('#attachmentFiles
 ['fleetSearch','fleetType','fleetStatus'].forEach(id=>$('#'+id).addEventListener('input',renderFleet));
 $('#addVehicleBtn').addEventListener('click',addVehicle);$('#clearResolved').addEventListener('click',clearResolved);$('#closeModal').addEventListener('click',modalClose);$('#modalBackdrop').addEventListener('click',e=>{if(e.target===$('#modalBackdrop'))modalClose()});document.addEventListener('keydown',e=>{if(e.key==='Escape'){modalClose();$('#sidebar').classList.remove('open')}});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.view)showIncident(b.dataset.view);if(b.dataset.resolve)changeStatus(b.dataset.resolve,'Resuelta');if(b.dataset.progress)changeStatus(b.dataset.progress,'En curso');if(b.dataset.reopen)changeStatus(b.dataset.reopen,'Abierta');if(b.dataset.vehicleDetail)showVehicleParts(b.dataset.vehicleDetail,b.dataset.vehicleCompany||'');if(b.dataset.newFor){clearForm();nav('new');$('#company').value=b.dataset.newCompany||'';$('#vehicleId').value=b.dataset.newFor;updateVehicleFromCode();}});
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('./service-worker.js',{scope:'./'}).catch(error=>console.warn('No se pudo registrar el modo instalable:',error));
+setupNavigationHistory();
 $('#detectedAt').value=nowLocal();void initApp();
 })();
 </script>
