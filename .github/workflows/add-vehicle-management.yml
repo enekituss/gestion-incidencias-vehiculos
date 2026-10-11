@@ -1,0 +1,36 @@
+name: Add vehicle management controls
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/add-vehicle-management.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch app
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          vehicle = Path('vehicle-management.js').read_text(encoding='utf-8')
+          marker = '\n})();\n</script>'
+          if 'function requestEditVehicle(company,id)' not in s:
+              if marker not in s:
+                  raise SystemExit('No se encontró el cierre del script principal')
+              s = s.replace(marker, '\n' + vehicle + marker, 1)
+              p.write_text(s, encoding='utf-8')
+          else:
+              print('Vehicle management already embedded')
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Add vehicle edit and delete controls"
+          git push
