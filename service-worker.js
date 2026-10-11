@@ -1,12 +1,14 @@
 /* Service worker for GitHub Pages: app shell cache and offline fallback. */
 const CACHE_PREFIX = "fleet-incidents-pwa-";
-const CACHE_NAME = CACHE_PREFIX + "v3";
+const CACHE_NAME = CACHE_PREFIX + "v4";
 const APP_BASE = self.registration.scope;
 const SHELL_URLS = [
   new URL("./index.html", APP_BASE).href,
   new URL("./manifest.webmanifest", APP_BASE).href,
   new URL("./icons/app-192.svg", APP_BASE).href,
-  new URL("./icons/app-512.svg", APP_BASE).href
+  new URL("./icons/app-512.svg", APP_BASE).href,
+  new URL("./icons/app-180.png", APP_BASE).href,
+  new URL("./icons/app-192.png", APP_BASE).href
 ];
 
 self.addEventListener("install", event => {

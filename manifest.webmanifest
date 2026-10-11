@@ -15,9 +15,9 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "./icons/app-192.svg",
+      "src": "./icons/app-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
