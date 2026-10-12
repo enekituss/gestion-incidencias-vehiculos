@@ -1,6 +1,6 @@
 /* Service worker for GitHub Pages: app shell cache and offline fallback. */
 const CACHE_PREFIX = "fleet-incidents-pwa-";
-const CACHE_NAME = CACHE_PREFIX + "v5";
+const CACHE_NAME = CACHE_PREFIX + "v6";
 const APP_BASE = self.registration.scope;
 const SHELL_URLS = [
   new URL("./index.html", APP_BASE).href,
